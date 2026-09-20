@@ -1,3 +1,5 @@
+import tempfile
+import zipfile
 from pathlib import Path
 
 import joblib
@@ -5,15 +7,32 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-MODEL_PATH = Path(__file__).parent / "car_price_model.joblib"
+HERE = Path(__file__).parent
+MODEL_NAME = "car_price_model.joblib"
 REFERENCE_YEAR = 2026  # must match the notebook: car_age = 2026 - year
 
 st.set_page_config(page_title="Used Car Price Predictor", page_icon="🚗", layout="centered")
 
 
+def find_model_path():
+    """Use car_price_model.joblib if present, else unzip it from any .zip in the repo."""
+    direct = HERE / MODEL_NAME
+    if direct.exists():
+        return direct
+    for z in HERE.glob("*.zip"):
+        out = Path(tempfile.gettempdir()) / "car_model_unzipped"
+        with zipfile.ZipFile(z) as zf:
+            zf.extractall(out)
+        found = list(out.rglob(MODEL_NAME))
+        if found:
+            return found[0]
+    return None
+
+
 @st.cache_resource
 def load_bundle():
-    return joblib.load(MODEL_PATH)
+    path = find_model_path()
+    return joblib.load(path) if path else None
 
 
 def inr(x: float) -> str:
@@ -84,11 +103,10 @@ def predict(bundle, row: dict):
 st.title("🚗 Used Car Price Predictor")
 st.caption("Estimate a used car's resale price from its specs. Trained on 8K+ CarDekho listings.")
 
-if not MODEL_PATH.exists():
-    st.error("`car_price_model.joblib` not found. Put it in the same folder as `app.py`.")
-    st.stop()
-
 bundle = load_bundle()
+if bundle is None:
+    st.error("`car_price_model.joblib` not found. Put it (or a zip containing it) next to `app.py`.")
+    st.stop()
 cat_cols = bundle["cat_cols"]
 options = {c: list(cats) for c, cats in zip(cat_cols, bundle["encoder"].categories_)}
 
