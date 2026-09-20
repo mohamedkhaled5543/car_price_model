@@ -10,10 +10,10 @@ Predicts used car prices from 8K+ listings (CarDekho data).
 ## Results
 | Model | MAE (₹) | R² |
 |---|---|---|
-| Random Forest | 73.8K | 0.92 |
-| Ridge (log) | 87.7K | 0.87 |
-| Linear (log) | 87.7K | 0.87 |
-| Linear (raw) | 137.8K | 0.66 |
+| Random Forest | 73.8K | 0.919216 |
+| Ridge (log) | 87.7K | 0.870017 |
+| Linear (log) | 87.7K | 0.869979 |
+| Linear (raw) | 137.8K | 0.662531 |
 
 ## Findings
 - Log-transforming price cut error by ~36%.
